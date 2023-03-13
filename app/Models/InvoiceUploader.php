@@ -69,26 +69,26 @@ class InvoiceUploader
     protected function processPayload(array $payload)
     {
         $files = &$payload;
-        foreach ($payload as $po => $data)
+        foreach ($files as $po => $data)
         {
             //Attempt upload of file to sftp endpoint
             $result = Storage::disk('sftp')
-                ->copy(
-                    Storage::disk('outbound')->get($data["filename"]),
-                    $data["filename"]
-                );
+                ->put(
+                    $data["filename"],
+                    Storage::disk('outbound')->get($data["filename"])
+                );       
 
             //If result successful and file exists at endpoint process normally
             if ($result && Storage::disk('sftp')->exists($data["filename"]))
             {
-                $data["remote-size"] = Storage::disk('sftp')->size($data["filename"]);
-                $data["is-uploaded"] = true;
-                $data["is-identical-filesize"] = $data["local-filesize"] === $data["remote-filesize"];
+                $files[$po]["remote-size"] = Storage::disk('sftp')->size($data["filename"]);
+                $files[$po]["is-uploaded"] = true;
+                $files[$po]["is-identical-filesize"] = ($files[$po]["local-size"] === $files[$po]["remote-size"]);
             }
             else
             {
                 //file flagged as having error at upload
-                $data["is-uploaded"] = false;
+                $files[$po]["is-uploaded"] = false;
                 //@todo move file to error folder
             }
         }
@@ -101,5 +101,15 @@ class InvoiceUploader
     public function test()
     {
         return Storage::disk('sftp')->files();
+    }
+
+    public function testUpload(array $payload)
+    {
+        $files = &$payload;
+
+        foreach ($files as $po => $data)
+        {
+            echo $data["filename"] . "\n";
+        }
     }
 }
