@@ -54,6 +54,12 @@ return [
             'throw' => false,
         ],
 
+        'errors' => [
+            'driver' => 'local',
+            'root' => storage_path('app/invoices/errors'),
+            'throw' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

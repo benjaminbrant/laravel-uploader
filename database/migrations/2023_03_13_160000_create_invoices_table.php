@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('is_processed')->nullable();
             $table->boolean('is_identical_filesize')->nullable();
             $table->string('archive_location')->nullable();
+            $table->boolean('archival_error')->nullable();
             $table->timestamps();
             $table->foreign('job_id')
                 ->references('id')->on('jobs')->onDelete('cascade');

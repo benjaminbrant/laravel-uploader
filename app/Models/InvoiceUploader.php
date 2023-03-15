@@ -165,17 +165,48 @@ class InvoiceUploader
 
         if ($job)
         {
-            //@todo set archive storage path
+            //Get string of current date archival path
+            $path = $this->getArchiveSToragePath();
 
             foreach ($job->invoices()->getResults() as $invoice)
             {
                 if ($invoice->is_uploaded)
                 {
                     //archive
+                    $result = Storage::disk('archive')
+                        ->put(
+                            $path . $invoice->filename,
+                            Storage::disk('outbound')->get($invoice->filename)
+                        );
+                    if ($result)
+                    {
+                        //remove original
+                        Storage::disk('outbound')->delete($invoice->filename);
+                        //write archive location
+                        $invoice->archive_location = asset('storage/archive/' . $path . $invoice->filename);
+                        $invoice->archival_error = false;
+                        //save changes back to model
+                        $invoice->save();
+                    }
+                    else
+                    {
+                        //error
+                        $invoice->archival_error = true;
+                        //@todo add an archive error field
+                    }
                 }
                 else
                 {
                     //move to error folder
+                    $result = Storage::disk('errors')
+                        ->put(
+                            $path . $invoice->filename,
+                            Storage::disk('outbound')->get($invoice->filename)
+                        );
+                    $invoice->archival_error = true;
+                    $invoice->save();
+                    $job->errors_encountered = true;
+                    $job->save();
                 }
             }
         }
@@ -217,9 +248,25 @@ class InvoiceUploader
         }
     }
 
-    protected function setArchiveSToragePath()
+    /**
+     * Get date specific folder string for use with archiving files uploaded
+     * @return false|string
+     */
+    protected function getArchiveSToragePath()
     {
-        //@todo
+        $timezone = new \DateTimeZone('Europe/London');
+
+        try
+        {
+            $now = new \DateTime("now", $timezone);
+        }
+        catch (\Exception $e)
+        {
+            return false;
+        }
+
+        //Return today's date string folder path
+        return "{$now->format('Y')}/{$now->format('M')}/{$now->format('d')}/";
     }
 
     //Scratch functions
