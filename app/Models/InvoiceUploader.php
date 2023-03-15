@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Support\Facades\Storage;
+use App\Models\Job;
+use App\Models\Invoice;
 
 class InvoiceUploader
 {
@@ -11,26 +13,12 @@ class InvoiceUploader
         //if needed
     }
 
-    //Public caller blackbox functions
-    public function getPayload()
-    {
-        return $this->generatePayload();
-    }
-
-    public function runPayload(array $payload)
-    {
-
-        return $this->processPayload($payload);
-    }
-
-    //Protected heavy lifter functions
-
     /**
      * Generate a payload array of all files in the inbound folder
      * ready for upload to sftp endpoint
      * @return array
      */
-    protected function generatePayload()
+    public function generatePayload()
     {
         $payload = [];
 
@@ -66,7 +54,7 @@ class InvoiceUploader
      * @param array $payload
      * @return array
      */
-    protected function processPayload(array $payload)
+    public function processPayload(array $payload)
     {
         $files = &$payload;
         foreach ($files as $po => $data)
@@ -76,7 +64,7 @@ class InvoiceUploader
                 ->put(
                     $data["filename"],
                     Storage::disk('outbound')->get($data["filename"])
-                );       
+                );
 
             //If result successful and file exists at endpoint process normally
             if ($result && Storage::disk('sftp')->exists($data["filename"]))
@@ -111,5 +99,10 @@ class InvoiceUploader
         {
             echo $data["filename"] . "\n";
         }
+    }
+
+    public function createRecords()
+    {
+        $job = new Job;
     }
 }

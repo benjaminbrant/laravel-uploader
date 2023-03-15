@@ -13,15 +13,18 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('job_id');
             $table->string('po');
             $table->string('filename');
-            $table->integer('local_size');
-            $table->integer('remote_size');
-            $table->boolean('is_uploaded');
-            $table->boolean('is_processed');
-            $table->boolean('is_identical_filesize');
-            $table->string('archive_location');
+            $table->integer('local_size')->nullable();
+            $table->integer('remote_size')->nullable();
+            $table->boolean('is_uploaded')->nullable();
+            $table->boolean('is_processed')->nullable();
+            $table->boolean('is_identical_filesize')->nullable();
+            $table->string('archive_location')->nullable();
             $table->timestamps();
+            $table->foreign('job_id')
+                ->references('id')->on('jobs')->onDelete('cascade');
         });
     }
 
