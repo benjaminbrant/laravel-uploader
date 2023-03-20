@@ -1,6 +1,13 @@
 <script setup>
+import JobHeader from "@/Components/Job/JobHeader.vue";
+import JobTable from "@/Components/Job/JobTable.vue";
+import Paginate from "@/Components/Paginate.vue";
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
+
+const props = defineProps({
+    jobs: Object
+});
 </script>
 
 <template>
@@ -18,5 +25,30 @@ import { Head } from '@inertiajs/vue3';
                 </div>
             </div>
         </div>
+
+        <div v-if="jobs.data">
+            <div class="container py-3 m-auto grid grid-cols-3 border-2">
+                <JobHeader :headings="['Job ID','Errors Encountered','Created At']" />
+            </div>
+            <div
+                v-for="job in jobs.data"
+                :key="job.id"
+                class="container py-3 m-auto grid grid-cols-3 border-2"
+            >
+                <JobTable :job="job" />
+            </div>
+        </div>
+        <div v-else>
+            <span>No jobs found</span>
+        </div>
+        <Paginate
+            class="my-6 py-4 rounded"
+            :links="jobs.links"
+        />
+
+
+        <pre>
+            {{jobs}}
+        </pre>
     </AuthenticatedLayout>
 </template>
