@@ -14,6 +14,9 @@ module.exports = {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            gridTemplateColumns: {
+                '13': 'repeat(13, minmax(0, 1fr))',
+            },
         },
     },
 

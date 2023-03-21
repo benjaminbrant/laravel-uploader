@@ -10,7 +10,7 @@ class JobController extends Controller
 {
     public function index()
     {
-        $jobs = Job::latest()->paginate(3);
+        $jobs = Job::latest()->paginate(10);
 
         return Inertia::render('Jobs/Index', ['jobs' => $jobs]);
     }

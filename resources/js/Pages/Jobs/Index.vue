@@ -47,8 +47,8 @@ const props = defineProps({
         />
 
 
-        <pre>
-            {{jobs}}
-        </pre>
+<!--        <pre>-->
+<!--            {{jobs}}-->
+<!--        </pre>-->
     </AuthenticatedLayout>
 </template>
