@@ -11,7 +11,12 @@ class Job extends Model
     use HasFactory;
 
     protected $fillable = [
-        'errors_encountered'
+        'is_payload_error',
+        'payload_error_msg',
+        'is_upload_error',
+        'upload_error_msg',
+        'is_archive_error',
+        'archive_error_msg',
     ];
 
     public function invoices(): HasMany

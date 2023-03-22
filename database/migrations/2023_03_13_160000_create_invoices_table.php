@@ -15,12 +15,14 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('job_id');
             $table->string('po');
+            $table->string('factory');
             $table->string('filename');
             $table->integer('local_size')->nullable();
             $table->integer('remote_size')->nullable();
             $table->boolean('is_uploaded')->nullable();
             $table->boolean('is_processed')->nullable();
             $table->boolean('is_identical_filesize')->nullable();
+            $table->boolean('is_invalid_filename')->nullable();
             $table->string('archive_location')->nullable();
             $table->boolean('archival_error')->nullable();
             $table->timestamps();

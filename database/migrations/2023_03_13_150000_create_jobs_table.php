@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
-            $table->boolean('errors_encountered')->nullable();
+            $table->boolean('is_payload_error')->nullable();
+            $table->string('payload_error_msg')->nullable();
+            $table->boolean('is_upload_error')->nullable();
+            $table->string('upload_error_msg')->nullable();
+            $table->boolean('is_archive_error')->nullable();
+            $table->string('archive_error_msg')->nullable();
             $table->timestamps();
         });
     }

@@ -12,13 +12,16 @@ class Invoice extends Model
 
     protected $fillable = [
         'po',
+        'factory',
         'filename',
         'local_size',
         'remote_size',
         'is_uploaded',
         'is_processed',
         'is_identical_filesize',
+        'is_invalid_filename',
         'archive_location',
+        'archive_error',
     ];
 
     public function job(): BelongsTo

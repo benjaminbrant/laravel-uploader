@@ -4,8 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Storage;
-use App\Models\Job;
-use App\Models\Invoice;
 
 class InvoiceUploader
 {
@@ -56,9 +54,12 @@ class InvoiceUploader
     public function generateModelPayload()
     {
         //generate new job
-        $job = new Job(["errors_encountered" => false]);
+        $job = new Job();
         $job->save();
         $jobId = $job->id;
+
+        //to record invalid file names if encountered
+        $invalidFiles = [];
 
         //Obtain a list of files to process from the storage/app/invoices/outbound mounted samba share folder
         $files = Storage::disk('outbound')->files();
@@ -66,20 +67,48 @@ class InvoiceUploader
         //Create a payload entry from each filename
         foreach ($files as $file)
         {
-            //Obtain PO number from filename and add to payload as key
-            $components = explode('_', $file);
-            $po = trim($components[0]);
+            //Check if file is in valid format to be processed
+            if (preg_match('/PO(\w*)(\d*)_(\w*)(\d*)_*/', $file))
+            {
+                //Obtain PO number from filename and add to payload as key
+                $components = explode('_', $file);
+                //strip 'PO' from string
+                $po = substr($components[0], 2);
+                $factory = $components[1];
 
-            //Create and save model
-            $invoice = new Invoice([
-                "filename" => $file,
-                "po" => $po,
-                "local_size" => Storage::disk('outbound')->size($file),
-                "is_uploaded" => false,
-                "is_processed" => false,
-            ]);
+                //Create and save model
+                $invoice = new Invoice([
+                    "filename" => $file,
+                    "po" => $po,
+                    "factory" => $factory,
+                    "local_size" => Storage::disk('outbound')->size($file),
+                ]);
 
-            $job->invoices()->save($invoice);
+                $job->invoices()->save($invoice);
+            }
+            else
+            {
+                //Add invalid filename to error array
+                $invalidFiles[] = $file;
+
+                //add entry to invoice that file in invalid format
+                $invoice = new Invoice([
+                    "filename" => $file,
+                    "po" => "0",
+                    "factory" => "0",
+                    "is_invalid_filename" => true
+                ]);
+
+                $job->invoices()->save($invoice);
+            }
+        }
+
+        //Record job error if needed
+        if (count($invalidFiles) > 0)
+        {
+            $job->is_payload_error = true;
+            $job->payload_error_msg = "Invalid filenames encountered while generating payload: " . implode(", ", $invalidFiles);
+            $job->save();
         }
 
         return $jobId;
@@ -129,7 +158,8 @@ class InvoiceUploader
 
         if ($job)
         {
-            foreach ($job->invoices()->getResults() as $invoice)
+            $uploadedFileErrors = [];
+            foreach ($job->invoices()->where('is_invalid_filename', '=', NULL)->getResults() as $invoice)
             {
                 if ($this->uploadFile($invoice->filename))
                 {
@@ -142,14 +172,22 @@ class InvoiceUploader
                 {
                     //file failed upload
                     $invoice->is_uploaded = false;
-                    //indicate errors encountered on main job
-                    $job->errors_encountered = true;
-                    $job->save();
+                    //Add filename to array indicating errors
+                    $uploadedFileErrors[] = $invoice->filename;
                 }
 
                 //save model back to db
                 $invoice->save();
             }
+
+            if (count($uploadedFileErrors) > 0)
+            {
+                //indicate errors encountered on main job
+                $job->is_upload_error = true;
+                $job->upload_error_msg = "Upload errors encountered for the following files: " . implode(', ', $uploadedFileErrors);
+                $job->save();
+            }
+
             return true;
         }
         else
