@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
+            $table->boolean('no_invoices_to_process')->nullable();
             $table->boolean('is_payload_error')->nullable();
             $table->string('payload_error_msg')->nullable();
             $table->boolean('is_upload_error')->nullable();

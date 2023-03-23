@@ -29,69 +29,88 @@ class InvoiceUploader
         //Obtain a list of files to process from the storage/app/invoices/outbound mounted samba share folder
         $files = Storage::disk('outbound')->files();
 
-        //Create a payload entry from each filename
-        foreach ($files as $file)
+        if (count($files) > 0)
         {
-            //Check if file is in valid format to be processed
-            if (preg_match('/PO(\w*)(\d*)_(\w*)(\d*)_*/', $file))
+            //Create a payload entry from each filename
+            foreach ($files as $file)
             {
-                //Obtain PO number from filename and add to payload as key
-                $components = explode('_', $file);
-                //strip 'PO' from string
-                $po = substr($components[0], 2);
-                $factory = $components[1];
-
-                //Create and save model
-                $invoice = new Invoice([
-                    "filename" => $file,
-                    "po" => $po,
-                    "factory" => strtolower($factory),
-                    "local_size" => Storage::disk('outbound')->size($file),
-                ]);
-
-                $job->invoices()->save($invoice);
-            }
-            else
-            {
-                //Add invalid filename to error array
-                $invalidFiles[] = $file;
-
-                //add entry to invoice that file in invalid format
-                $invoice = new Invoice([
-                    "filename" => $file,
-                    "po" => "0",
-                    "factory" => "0",
-                    "is_invalid_filename" => true
-                ]);
-
-                //Move to outbound error payload folder
-                $result = Storage::disk('outbound')->put(
-                    'errors/payload/' . $invoice->filename,
-                    Storage::disk('outbound')->get($invoice->filename)
-                );
-                //if successful move delete original
-                if ($result)
+                //Check if file is in valid format to be processed
+                if (preg_match('/PO(\w*)(\d*)_(\w*)(\d*)_*/', $file))
                 {
-                    Storage::disk('outbound')->delete($invoice->filename);
+                    //Obtain PO number from filename and add to payload as key
+                    $components = explode('_', $file);
+                    //strip 'PO' from string
+                    $po = substr($components[0], 2);
+                    $factory = $components[1];
+
+                    //Create and save model
+                    $invoice = new Invoice([
+                        "filename" => $file,
+                        "po" => $po,
+                        "factory" => strtolower($factory),
+                        "local_size" => Storage::disk('outbound')->size($file),
+                    ]);
+
+                    $job->invoices()->save($invoice);
                 }
+                else
+                {
+                    //Add invalid filename to error array
+                    $invalidFiles[] = $file;
 
-                $job->invoices()->save($invoice);
+                    //add entry to invoice that file in invalid format
+                    $invoice = new Invoice([
+                        "filename" => $file,
+                        "po" => "0",
+                        "factory" => "0",
+                        "is_invalid_filename" => true
+                    ]);
+
+                    //Move to outbound error payload folder
+                    $result = Storage::disk('outbound')->put(
+                        'errors/payload/' . $invoice->filename,
+                        Storage::disk('outbound')->get($invoice->filename)
+                    );
+                    //if successful move delete original
+                    if ($result)
+                    {
+                        Storage::disk('outbound')->delete($invoice->filename);
+                    }
+
+                    $job->invoices()->save($invoice);
+                }
             }
-        }
 
-        //Record job error if needed
-        if (count($invalidFiles) > 0)
+            //Record job error if needed
+            if (count($invalidFiles) > 0)
+            {
+                $job->is_payload_error = true;
+                $job->payload_error_msg = "Invalid filenames encountered while generating payload: " . implode(", ", $invalidFiles);
+                $job->save();
+            }
+
+            return $jobId;
+        }
+        else
         {
-            $job->is_payload_error = true;
-            $job->payload_error_msg = "Invalid filenames encountered while generating payload: " . implode(", ", $invalidFiles);
+            $job->no_invoices_to_process = true;
             $job->save();
+            exit;
         }
 
-        return $jobId;
     }
 
     public function processModelPayload(int $jobId)
     {
+        if (!$jobId)
+        {
+            //No valid Job ID Provided to method
+            return false;
+        }
+
+        //Set archive flag for later use filing files, default false
+        $archiveFlag = false;
+
         //attempt to pull job model
         $job = $this->pullJobRecord($jobId);
 
@@ -137,16 +156,19 @@ class InvoiceUploader
                 $job->save();
             }
 
-            return true;
+            $archiveFlag = true;
         }
         else
         {
             //job model not found in db
-            return false;
+            $archiveFlag = false;
         }
+
+        //If archive flag valid run job
+        $archiveFlag ? $this->archiveUploadedFiles($jobId) : exit;
     }
 
-    public function archiveUploadedFiles(int $jobId)
+    protected function archiveUploadedFiles(int $jobId)
     {
         $job = $this->pullJobRecord($jobId);
 
