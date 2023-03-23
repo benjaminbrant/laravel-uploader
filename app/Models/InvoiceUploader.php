@@ -80,7 +80,7 @@ class InvoiceUploader
                 $invoice = new Invoice([
                     "filename" => $file,
                     "po" => $po,
-                    "factory" => $factory,
+                    "factory" => strtolower($factory),
                     "local_size" => Storage::disk('outbound')->size($file),
                 ]);
 
@@ -98,6 +98,17 @@ class InvoiceUploader
                     "factory" => "0",
                     "is_invalid_filename" => true
                 ]);
+
+                //Move to outbound error payload folder
+                $result = Storage::disk('outbound')->put(
+                    'errors/payload/' . $invoice->filename,
+                    Storage::disk('outbound')->get($invoice->filename)
+                );
+                //if successful move delete original
+                if ($result)
+                {
+                    Storage::disk('outbound')->delete($invoice->filename);
+                }
 
                 $job->invoices()->save($invoice);
             }
@@ -174,6 +185,16 @@ class InvoiceUploader
                     $invoice->is_uploaded = false;
                     //Add filename to array indicating errors
                     $uploadedFileErrors[] = $invoice->filename;
+                    //move file to errors/upload
+                    $result = Storage::disk('outbound')->put(
+                        'errors/upload/' . $invoice->filename,
+                        Storage::disk('outbound')->get($invoice->filename)
+                    );
+                    //if successful move delete original
+                    if ($result)
+                    {
+                        Storage::disk('outbound')->delete($invoice->filename);
+                    }
                 }
 
                 //save model back to db
@@ -204,48 +225,95 @@ class InvoiceUploader
         if ($job)
         {
             //Get string of current date archival path
-            $path = $this->getArchiveSToragePath();
+            //$path = $this->getArchiveSToragePath();
 
-            foreach ($job->invoices()->getResults() as $invoice)
+            //To record archival error filenames
+            $archivalErrors = [];
+
+            foreach ($job->invoices()->where('is_uploaded', '=', true)->getResults() as $invoice)
             {
-                if ($invoice->is_uploaded)
+
+                //@todo attempt to archive file record error if encountered
+                if (strlen($invoice->factory) > 1)
                 {
-                    //archive
+                    //archive file to factory folder
                     $result = Storage::disk('archive')
                         ->put(
-                            $path . $invoice->filename,
+                            $invoice->factory . '/' . $invoice->filename,
                             Storage::disk('outbound')->get($invoice->filename)
                         );
+
                     if ($result)
                     {
                         //remove original
                         Storage::disk('outbound')->delete($invoice->filename);
-                        //write archive location
-                        $invoice->archive_location = asset('storage/archive/' . $path . $invoice->filename);
-                        $invoice->archival_error = false;
+                        //write archive location to open files from frontend
+                        $invoice->archive_location = asset('storage/archive/') . $invoice->factory . '/' . $invoice->filename;
                         //save changes back to model
                         $invoice->save();
                     }
                     else
                     {
-                        //error
-                        $invoice->archival_error = true;
-                        //@todo add an archive error field
-                    }
-                }
-                else
-                {
-                    //move to error folder
-                    $result = Storage::disk('errors')
-                        ->put(
-                            $path . $invoice->filename,
+                        //add file to archive error list
+                        $archivalErrors[] = $invoice->filename;
+
+                        //move file to errors folder
+                        Storage::disk('outbound')->put(
+                            'errors/' . $invoice->filename,
                             Storage::disk('outbound')->get($invoice->filename)
                         );
-                    $invoice->archival_error = true;
-                    $invoice->save();
-                    $job->errors_encountered = true;
+
+                        //save model
+                        $invoice->archival_error = true;
+                        $invoice->save();
+                    }
+                }
+
+                if (count($archivalErrors) > 0)
+                {
+                    $job->is_archive_error = true;
+                    $job->archive_error_msg = "Errors encountered while archiving for the following files: " . implode(', ', $archivalErrors);
                     $job->save();
                 }
+
+//                if ($invoice->is_uploaded)
+//                {
+//                    //archive
+//                    $result = Storage::disk('archive')
+//                        ->put(
+//                            $path . $invoice->filename,
+//                            Storage::disk('outbound')->get($invoice->filename)
+//                        );
+//                    if ($result)
+//                    {
+//                        //remove original
+//                        Storage::disk('outbound')->delete($invoice->filename);
+//                        //write archive location
+//                        $invoice->archive_location = asset('storage/archive/' . $path . $invoice->filename);
+//                        $invoice->archival_error = false;
+//                        //save changes back to model
+//                        $invoice->save();
+//                    }
+//                    else
+//                    {
+//                        //error
+//                        $invoice->archival_error = true;
+//                        //@todo add an archive error field
+//                    }
+//                }
+//                else
+//                {
+//                    //move to error folder
+//                    $result = Storage::disk('errors')
+//                        ->put(
+//                            $path . $invoice->filename,
+//                            Storage::disk('outbound')->get($invoice->filename)
+//                        );
+//                    $invoice->archival_error = true;
+//                    $invoice->save();
+//                    $job->errors_encountered = true;
+//                    $job->save();
+//                }
             }
         }
         else
