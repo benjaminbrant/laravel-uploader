@@ -14,9 +14,9 @@ class InvoiceUploader
 
     /**
      * Generate new job and create model entries for files pending upload
-     * @return int
+     * @return int | false
      */
-    public function generateModelPayload()
+    public function generateModelPayload(): int | false
     {
         //generate new job
         $job = new Job();
@@ -95,12 +95,16 @@ class InvoiceUploader
         {
             $job->no_invoices_to_process = true;
             $job->save();
-            exit;
+            return false;
         }
 
     }
 
-    public function processModelPayload(int $jobId)
+    /**
+     * @param int $jobId
+     * @return boolean
+     */
+    public function processModelPayload(int $jobId): bool
     {
         if (!$jobId)
         {
@@ -161,14 +165,28 @@ class InvoiceUploader
         else
         {
             //job model not found in db
-            $archiveFlag = false;
+            return $archiveFlag;
         }
 
         //If archive flag valid run job
-        $archiveFlag ? $this->archiveUploadedFiles($jobId) : exit;
+        if ($archiveFlag)
+        {
+            $archiveFlag = $this->archiveUploadedFiles($jobId);
+        }
+        else
+        {
+            return false;
+        }
+
+        return $archiveFlag;
     }
 
-    protected function archiveUploadedFiles(int $jobId)
+    /**
+     * Archive invoice files following successful upload
+     * @param int $jobId
+     * @return bool
+     */
+    protected function archiveUploadedFiles(int $jobId): bool
     {
         $job = $this->pullJobRecord($jobId);
 
@@ -224,6 +242,8 @@ class InvoiceUploader
                 }
 
             }
+
+            return true;
         }
         else
         {
