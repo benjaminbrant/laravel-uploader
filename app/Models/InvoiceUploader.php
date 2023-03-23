@@ -213,7 +213,7 @@ class InvoiceUploader
                         //remove original
                         Storage::disk('outbound')->delete($invoice->filename);
                         //write archive location to open files from frontend
-                        $invoice->archive_location = asset('storage/archive/') . $invoice->factory . '/' . $invoice->filename;
+                        $invoice->archive_location = asset('storage/archive') . '/' . $invoice->factory . '/' . $invoice->filename;
                         //save changes back to model
                         $invoice->save();
                     }
