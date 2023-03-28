@@ -1,25 +1,8 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import InvoiceHeader from "@/Components/Invoice/InvoiceHeader.vue";
-import InvoiceTable from "@/Components/Invoice/InvoiceTable.vue";
 import Paginate from "@/Components/Paginate.vue";
-
-const headings = [
-    "ID",
-    "Job ID",
-    "PO",
-    "Filename",
-    "Local Size",
-    "Remote Size",
-    "Uploaded",
-    "Processed",
-    "Identical Filesize",
-    "Archival Location",
-    "Archival Error",
-    "Created At",
-    "Updated At"
-];
+import Invoice from "@/Components/Invoice/Invoice.vue";
 
 const props = defineProps({
     invoices: Object
@@ -43,15 +26,11 @@ const props = defineProps({
         </div>
 
         <div v-if="invoices.data">
-            <div class="w-screen py-3 border-2 grid grid-cols-13">
-                <InvoiceHeader :headings="headings" />
-            </div>
             <div
                 v-for="invoice in invoices.data"
                 :key="invoice.id"
-                class="w-screen py-3 border-2 grid grid-cols-13"
             >
-                <InvoiceTable :invoice="invoice" />
+                <Invoice :invoice="invoice" />
             </div>
         </div>
         <div v-else>
@@ -61,9 +40,5 @@ const props = defineProps({
             class="my-6 py-4 rounded"
             :links="invoices.links"
         />
-
-<!--        <pre>-->
-<!--            {{invoices}}-->
-<!--        </pre>-->
     </AuthenticatedLayout>
 </template>

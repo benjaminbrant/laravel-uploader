@@ -10,7 +10,7 @@ class InvoiceController extends Controller
 {
     public function index()
     {
-        $invoices = Invoice::latest()->paginate(15);
+        $invoices = Invoice::latest()->where('archive_location', '!=', NULL)->paginate(15);
 
         return Inertia::render('Invoices/Index', ['invoices' => $invoices]);
     }

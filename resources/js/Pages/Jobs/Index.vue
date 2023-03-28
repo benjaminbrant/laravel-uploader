@@ -1,9 +1,8 @@
 <script setup>
-import JobHeader from "@/Components/Job/JobHeader.vue";
-import JobTable from "@/Components/Job/JobTable.vue";
 import Paginate from "@/Components/Paginate.vue";
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import Job from "@/Components/Job/Job.vue";
 
 const props = defineProps({
     jobs: Object
@@ -27,15 +26,11 @@ const props = defineProps({
         </div>
 
         <div v-if="jobs.data">
-            <div class="container py-3 m-auto grid grid-cols-3 border-2">
-                <JobHeader :headings="['Job ID','Errors Encountered','Created At']" />
-            </div>
             <div
                 v-for="job in jobs.data"
                 :key="job.id"
-                class="container py-3 m-auto grid grid-cols-3 border-2"
             >
-                <JobTable :job="job" />
+                <Job :job="job" />
             </div>
         </div>
         <div v-else>
