@@ -7,6 +7,7 @@ import Invoice from "@/Components/Invoice/Invoice.vue";
 const props = defineProps({
     invoices: Object
 });
+
 </script>
 
 <template>
@@ -25,7 +26,7 @@ const props = defineProps({
             </div>
         </div>
 
-        <div v-if="invoices.data">
+        <div v-if="invoices.total > 0">
             <div
                 v-for="invoice in invoices.data"
                 :key="invoice.id"
@@ -33,8 +34,8 @@ const props = defineProps({
                 <Invoice :invoice="invoice" />
             </div>
         </div>
-        <div v-else>
-            <span>No invoices found</span>
+        <div v-else class="w-1/2 bg-white rounded h-12 flex justify-center items-center mx-auto drop-shadow">
+            <span class="font-bold">No invoices found</span>
         </div>
         <Paginate
             class="my-6 py-4 rounded"

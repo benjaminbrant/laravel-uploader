@@ -1,5 +1,7 @@
 <script setup>
 import { computed } from 'vue';
+import Tick from "@/Components/Tick.vue";
+import Cross from "@/Components/Cross.vue";
 
     const props = defineProps({
         invoice: Object
@@ -32,7 +34,11 @@ import { computed } from 'vue';
                 <div class="md:flex md:justify-start p-3">
                     <div class=""><span>Local Filesize: </span><span class="font-bold">{{ invoice.local_size }}</span></div>
                     <div class="md:pt-0 md:pl-2 pt-1"><span>Remote Filesize: </span><span class="font-bold">{{ invoice.remote_size }}</span></div>
-                    <div class="md:pt-0 md:pl-2 pt-1"><span>Sizes Match: </span><span>{{ (invoice.is_identical_filesize) ? "&#x2611" : "" }}</span></div>
+                    <div class="md:pt-0 md:pl-2 pt-1 flex">
+                        <span class="md:mr-2">Sizes Match: </span>
+                        <span v-if="invoice.is_identical_filesize"><Tick /></span>
+                        <span v-else><Cross /></span>
+                    </div>
                 </div>
             </div>
             <div class="md:w-[25%]">
