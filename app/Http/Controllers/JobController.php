@@ -10,6 +10,7 @@ class JobController extends Controller
 {
     public function index(Request $request)
     {
+        //Return invoices associated with specified job id
         if ($request->has('job'))
         {
             $job = $request->job;
@@ -22,6 +23,7 @@ class JobController extends Controller
             return Inertia::render('Invoices/Index', ['invoices' => $invoices]);
         }
 
+        //Return all jobs
         $jobs = Job::latest()->paginate(10);
 
         return Inertia::render('Jobs/Index', ['jobs' => $jobs]);

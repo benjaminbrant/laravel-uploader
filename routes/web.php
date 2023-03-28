@@ -36,6 +36,7 @@ Route::redirect('/', '/job')->middleware(['auth', 'verified'])->name('home');
 Route::get('/job', [JobController::class, 'index'])->middleware(['auth', 'verified'])->name('job');
 Route::post('/job', [JobController::class, 'index'])->middleware(['auth','verified'])->name('jobinvoices');
 Route::get('/invoices', [InvoiceController::class, 'index'])->middleware(['auth', 'verified'])->name('invoices');
+Route::post('/invoices', [InvoiceController::class, 'index'])->middleware(['auth', 'verified'])->name('searchinvoices');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
