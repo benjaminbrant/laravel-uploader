@@ -46,21 +46,12 @@ You could mount a network samba share to the invoices folder and then create the
 8. Create a symbolic link from the /storage/app/invoices/archive folder to /public/archive
 <br><code>ln -s <full path to vhost>/storage/app/invoices/archive <full path to vhost>/public/archive</code>
 
-9. Add an entry for the SFTP connection details to the <code>/config/filesystems.php</code> file at the end of the <code>"disks" => [...]</code> array:
-<br><pre>'sftp' => [
-   'driver' => 'sftp',
-   'host' => env('SFTP_HOST'),
-   'username' => env('SFTP_USERNAME'),
-   'password' => env('SFTP_PASSWORD'),
-   'root' => env('SFTP_ROOT', '')
-   ],</pre>
-
-10. Add associated sftp credentials into the <strong>.env</strong> file:
+9. Add associated sftp credentials into the <strong>.env</strong> file:
 <pre>SFTP_HOST=ip address
 SFTP_USERNAME=username
 SFTP_PASSWORD=password
 SFTP_ROOT=upload path</pre>
 
-11. Run <code>php artisan migrate</code> to create the table structure
+10. Run <code>php artisan migrate</code> to create the table structure
 
-12. When you first access the homepage you will need to login. In order to create a new user go to <code>webiste url/register</code> you will then be able to login to the main site.  
+11. When you first access the homepage you will need to log in. In order to create a new user go to <code>webiste url/register</code> you will then be able to login to the main site.  
