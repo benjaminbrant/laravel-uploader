@@ -25,7 +25,7 @@ const props = defineProps({
             </div>
         </div>
 
-        <div v-if="jobs.data">
+        <div v-if="jobs.total > 0">
             <div
                 v-for="job in jobs.data"
                 :key="job.id"
@@ -33,8 +33,8 @@ const props = defineProps({
                 <Job :job="job" />
             </div>
         </div>
-        <div v-else>
-            <span>No jobs found</span>
+        <div v-else class="w-1/2 bg-white rounded h-12 flex justify-center items-center mx-auto drop-shadow">
+            <span class="font-bold">No jobs found</span>
         </div>
         <Paginate
             class="my-6 py-4 rounded"

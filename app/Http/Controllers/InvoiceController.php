@@ -16,17 +16,11 @@ class InvoiceController extends Controller
         {
             $invoiceId = $request->search;
 
-            try {
-                $invoices = Invoice::findOrFail($invoiceId)
+            $invoices = Invoice::where('po', '=', $invoiceId)
                     ->where('archive_location', '!=', NULL)
                     ->paginate(15);
 
 
-            } catch (ModelNotFoundException $e)
-            {
-                //Manually set total to zero to display no invoices found message on component
-                $invoices = ['total' => 0];
-            }
             return Inertia::render('Invoices/Index', ['invoices' => $invoices]);
         }
 
