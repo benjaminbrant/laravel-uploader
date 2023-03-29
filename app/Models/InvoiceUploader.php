@@ -197,8 +197,6 @@ class InvoiceUploader
 
             foreach ($job->invoices()->where('is_uploaded', '=', true)->getResults() as $invoice)
             {
-
-                //@todo attempt to archive file record error if encountered
                 if (strlen($invoice->factory) > 1)
                 {
                     //archive file to factory folder

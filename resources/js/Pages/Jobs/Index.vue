@@ -41,9 +41,5 @@ const props = defineProps({
             :links="jobs.links"
         />
 
-
-<!--        <pre>-->
-<!--            {{jobs}}-->
-<!--        </pre>-->
     </AuthenticatedLayout>
 </template>
