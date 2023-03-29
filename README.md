@@ -54,4 +54,6 @@ SFTP_ROOT=upload path</pre>
 
 10. Run <code>php artisan migrate</code> to create the table structure
 
-11. When you first access the homepage you will need to log in. In order to create a new user go to <code>webiste url/register</code> you will then be able to login to the main site.  
+11. Run <code>npm run build</code> to create necessary files
+
+12. When you first access the homepage you will need to log in. In order to create a new user go to <code>webiste url/register</code> you will then be able to login to the main site.  
