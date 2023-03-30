@@ -16,6 +16,8 @@ The site will process using three stages:
    - These will then be uploaded with associated error handling if this process fails for any reason
    - Successfully transferred files will then be archived and removed from the outbound directory. In this example I have symlinked the archive directory into the public directory to allow the use of the asset('storage') function in Laravel to provide a hyperlink to view these pdfs from the frontend after successful upload.
 
+Current active file pregmatch for stage 1: PO(\w*)(\d*)_(\w*)(\d*)_*
+
 The site can be logged into which will show jobs processed and the ability of viewing uploaded invoices by job id or as a whole on a searchable page. 
 
 ## Project Cloning And Initial Setup
@@ -26,7 +28,8 @@ The site can be logged into which will show jobs processed and the ability of vi
      <br><code>composer install</code>
      <br><code>npm install</code>
 
-3. The <strong>.env</strong> needs to be copied from the default <strong>.env.example</strong> file
+3. The <strong>.env</strong> needs to be copied from the default <strong>.env.example</strong> file.
+   (Add database connection details)
 
 4. A new Laravel key needs to be generated via: 
 <br><code>php artisan key:generate</code>
